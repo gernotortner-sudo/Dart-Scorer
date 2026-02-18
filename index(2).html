@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎯 Dart Scorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e8b84b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dart Scorer">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Dart Scorer">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #111418;
+    --bg3: #181c22;
+    --panel: #1a1f27;
+    --border: #2a3040;
+    --accent: #e8b84b;
+    --accent2: #c0392b;
+    --accent3: #27ae60;
+    --text: #e8eaf0;
+    --muted: #7a8499;
+    --highlight: #f0c060;
+    --red: #e74c3c;
+    --green: #2ecc71;
+    --blue: #3498db;
+    --shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(232,184,75,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(192,57,43,0.04) 0%, transparent 60%);
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 28px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(232,184,75,0.06) 0%, transparent 100%);
+    position: relative;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    letter-spacing: 6px;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(232,184,75,0.3);
+    line-height: 1;
+  }
+  .logo span { color: var(--text); }
+  .subtitle {
+    font-size: 0.85rem;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ── SETUP SCREEN ── */
+  #setup-screen {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .section-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .mode-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .mode-card {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .mode-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(232,184,75,0.08), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .mode-card:hover::before, .mode-card.selected::before { opacity: 1; }
+  .mode-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .mode-card.selected { border-color: var(--accent); background: rgba(232,184,75,0.07); }
+  .mode-icon { font-size: 2rem; margin-bottom: 6px; }
+  .mode-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+  .mode-desc { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+  /* X01 options */
+  .x01-options {
+    display: none;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .x01-options.visible { display: flex; }
+  .x01-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+  .x01-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(232,184,75,0.08); }
+
+  .checkout-options {
+    display: none;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .checkout-options.visible { display: flex; }
+
+  /* Player setup */
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    animation: slideIn 0.2s ease;
+  }
+  @keyframes slideIn { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:none; } }
+
+  .player-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--accent);
+    width: 30px;
+    text-align: center;
+  }
+  input[type="text"] {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 14px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .remove-btn {
+    background: none;
+    border: 1px solid #3a3a3a;
+    color: var(--muted);
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .remove-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .add-player-btn {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 10px;
+    width: 100%;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    margin-bottom: 28px;
+  }
+  .add-player-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .start-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), #c49020);
+    color: #0a0c0f;
+    border: none;
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(232,184,75,0.3);
+  }
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,184,75,0.4); }
+  .start-btn:active { transform: translateY(0); }
+
+  /* ── GAME SCREEN ── */
+  #game-screen { display: none; }
+
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .game-mode-badge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    background: rgba(232,184,75,0.1);
+    border: 1px solid rgba(232,184,75,0.3);
+    border-radius: 6px;
+    padding: 4px 14px;
+  }
+  .round-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .game-btns { display: flex; gap: 8px; }
+  .icon-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 7px;
+    padding: 7px 14px;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── PLAYERS STRIP ── */
+  #players-strip {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .player-card {
+    flex: 1;
+    min-width: 120px;
+    padding: 14px 16px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    transition: background 0.2s;
+    position: relative;
+    cursor: default;
+  }
+  .player-card:last-child { border-right: none; }
+  .player-card.active {
+    background: rgba(232,184,75,0.06);
+  }
+  .player-card.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .player-card.bust { background: rgba(231,76,60,0.06); }
+  .player-card.winner { background: rgba(46,204,113,0.08); }
+
+  .pc-name {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pc-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+    color: var(--text);
+    transition: all 0.3s;
+  }
+  .player-card.active .pc-score { color: var(--accent); }
+  .player-card.bust .pc-score { color: var(--red); }
+  .player-card.winner .pc-score { color: var(--green); }
+  .pc-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* ── MAIN GAME AREA ── */
+  #game-main {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 0;
+    max-height: calc(100vh - 200px);
+    overflow: hidden;
+  }
+
+  @media (max-width: 700px) {
+    #game-main { grid-template-columns: 1fr; max-height: none; }
+    .sidebar { display: none !important; }
+  }
+
+  /* ── INPUT AREA ── */
+  #input-area {
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .turn-info {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .ti-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .ti-label { font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .ti-sep { flex: 1; }
+  .ti-throws {
+    display: flex;
+    gap: 8px;
+  }
+  .throw-slot {
+    width: 48px; height: 48px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--muted);
+    transition: all 0.2s;
+    position: relative;
+  }
+  .throw-slot.filled {
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: bold;
+  }
+  .throw-slot.bust-slot { border-color: var(--red); color: var(--red); }
+
+  /* Numpad */
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .np-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 4px;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all 0.12s;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 44px;
+  }
+  .np-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(232,184,75,0.12);
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .np-btn:hover::before { opacity: 1; }
+  .np-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .np-btn:active { transform: none; }
+  .np-btn.double { border-color: #2a5080; color: var(--blue); }
+  .np-btn.triple { border-color: #1e4030; color: var(--green); }
+  .np-btn.bull { border-color: rgba(232,184,75,0.4); color: var(--accent); }
+  .np-btn.miss { color: var(--red); border-color: rgba(231,76,60,0.3); }
+  .np-btn.action { background: var(--bg3); }
+
+  .multiplier-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .mult-btn {
+    background: var(--bg3);
+    border: 2px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .mult-btn.single.active { border-color: var(--text); color: var(--text); }
+  .mult-btn.double.active { border-color: var(--blue); color: var(--blue); background: rgba(52,152,219,0.08); }
+  .mult-btn.triple.active { border-color: var(--green); color: var(--green); background: rgba(46,204,113,0.08); }
+
+  /* Action buttons */
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .big-btn {
+    border-radius: 8px;
+    padding: 13px;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    transition: all 0.15s;
+    border: none;
+  }
+  .big-btn.confirm {
+    background: linear-gradient(135deg, #27ae60, #1e8449);
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(39,174,96,0.3);
+  }
+  .big-btn.confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(39,174,96,0.4); }
+  .big-btn.undo {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .big-btn.undo:hover { border-color: var(--red); color: var(--red); }
+
+  /* Hint */
+  .hint-box {
+    background: rgba(232,184,75,0.05);
+    border: 1px solid rgba(232,184,75,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    display: none;
+  }
+  .hint-box.visible { display: block; }
+  .hint-box strong { color: var(--accent); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px;
+  }
+  .sidebar-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* Score log */
+  .log-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.82rem;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  .log-name { color: var(--muted); width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .log-throws { font-family: 'Share Tech Mono', monospace; color: var(--text); flex: 1; }
+  .log-total {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    width: 36px;
+    text-align: right;
+  }
+  .log-entry.bust .log-total { color: var(--red); }
+  .log-entry.good .log-total { color: var(--green); }
+
+  /* ── CRICKET BOARD ── */
+  .cricket-board {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Rajdhani', sans-serif;
+  }
+  .cricket-board th {
+    padding: 8px 6px;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .cricket-board td {
+    padding: 6px 6px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .cricket-board td.number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    color: var(--accent);
+    width: 36px;
+  }
+  .marks {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--muted);
+    min-width: 44px;
+  }
+  .marks.closed { color: var(--green); }
+  .marks.points { color: var(--blue); }
+  .cricket-pts {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+
+  /* ── AROUND THE CLOCK / SHANGHAI ── */
+  .atc-progress {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .atc-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .atc-num.hit { border-color: var(--green); color: var(--green); background: rgba(46,204,113,0.1); }
+  .atc-num.current { border-color: var(--accent); color: var(--accent); background: rgba(232,184,75,0.1); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(232,184,75,0.3)} 50%{box-shadow:0 0 0 5px rgba(232,184,75,0)} }
+
+  /* ── WIN SCREEN ── */
+  #win-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    backdrop-filter: blur(6px);
+  }
+  #win-screen.show { display: flex; }
+  .win-card {
+    background: var(--bg2);
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    padding: 48px 60px;
+    text-align: center;
+    box-shadow: 0 0 80px rgba(232,184,75,0.2);
+    max-width: 420px;
+    width: 90%;
+    animation: winPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes winPop { from { transform: scale(0.7); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .win-trophy { font-size: 4rem; margin-bottom: 16px; }
+  .win-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 6px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .win-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(232,184,75,0.4);
+    line-height: 1;
+    margin-bottom: 24px;
+  }
+  .win-stats { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; line-height: 1.8; }
+  .win-btn {
+    background: linear-gradient(135deg, var(--accent), #c49020);
+    color: #0a0c0f;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 36px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0 6px;
+  }
+  .win-btn.secondary {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .win-btn:hover { transform: translateY(-2px); }
+
+  /* Confetti */
+  .confetti { position: fixed; pointer-events: none; z-index: 200; }
+  .c-piece {
+    position: absolute;
+    width: 8px; height: 8px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity:1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity:0; }
+  }
+
+  /* ── MISC ── */
+  .bust-msg {
+    background: rgba(231,76,60,0.1);
+    border: 1px solid rgba(231,76,60,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--red);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    display: none;
+    animation: shake 0.3s ease;
+  }
+  @keyframes shake { 0%,100%{transform:none} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .bust-msg.show { display: block; }
+
+  .hidden { display: none !important; }
+  .score-flash {
+    animation: flash 0.3s ease;
+  }
+  @keyframes flash { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+
+  /* Around the Clock input */
+  .atc-btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .atc-input-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 14px;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .atc-input-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+
+  /* Shanghai specific */
+  .shanghai-badge {
+    display: inline-block;
+    background: rgba(232,184,75,0.15);
+    border: 1px solid rgba(232,184,75,0.4);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-left: 8px;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ SETUP ═══════════════════════════════════════ -->
+<header>
+  <div class="logo">🎯 Dart <span>Scorer</span></div>
+  <div class="subtitle">Professional Match Tracker</div>
+</header>
+
+<div id="setup-screen">
+  <div class="section-label">SPIELMODUS</div>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="selectMode('x01')">
+      <div class="mode-icon">🎯</div>
+      <div class="mode-name">301 / 501</div>
+      <div class="mode-desc">Classic X01 – Countdown zum Sieg</div>
+    </div>
+    <div class="mode-card" onclick="selectMode('cricket')">
+      <div class="mode-icon">🏏</div>
+      <div class="mode-name">Cricket</div>
+      <div class="mode-desc">Felder schließen & Punkte sammeln</div>
+    </div>
+    <div class="mode-card" onclick="selectMode('atc')">
+      <div class="mode-icon">🕐</div>
+      <div class="mode-name">Around the Clock</div>
+      <div class="mode-desc">1–20 der Reihe nach treffen</div>
+    </div>
+    <div class="mode-card" onclick="selectMode('shanghai')">
+      <div class="mode-icon">🏙️</div>
+      <div class="mode-name">Shanghai</div>
+      <div class="mode-desc">7 Runden – höchste Punktzahl gewinnt</div>
+    </div>
+  </div>
+
+  <!-- X01 sub-options -->
+  <div id="x01-options" class="x01-options">
+    <div class="section-label" style="width:100%; margin-bottom:8px">STARTPUNKTE</div>
+    <button class="x01-btn" onclick="setX01(101)">101</button>
+    <button class="x01-btn selected" onclick="setX01(301)">301</button>
+    <button class="x01-btn" onclick="setX01(501)">501</button>
+    <button class="x01-btn" onclick="setX01(701)">701</button>
+    <button class="x01-btn" onclick="setX01(1001)">1001</button>
+  </div>
+  <div id="checkout-opts" class="checkout-options">
+    <div class="section-label" style="width:100%; margin-bottom:8px">CHECKOUT</div>
+    <button class="x01-btn selected" onclick="setCheckout('straight')">Straight Out</button>
+    <button class="x01-btn" onclick="setCheckout('double')">Double Out</button>
+    <button class="x01-btn" onclick="setCheckout('master')">Master Out</button>
+  </div>
+
+  <div class="section-label">SPIELER</div>
+  <div id="player-list"></div>
+  <button class="add-player-btn" id="add-player-btn" onclick="addPlayer()">+ Spieler hinzufügen</button>
+
+  <button class="start-btn" onclick="startGame()">SPIEL STARTEN</button>
+</div>
+
+<!-- ═══════════════════════════════════════ GAME ═══════════════════════════════════════ -->
+<div id="game-screen">
+  <div class="game-header">
+    <div class="game-mode-badge" id="mode-badge">501</div>
+    <div class="round-badge">RUNDE <span id="round-num">1</span></div>
+    <div class="game-btns">
+      <button class="icon-btn" onclick="undoLastTurn()">↩ Undo</button>
+      <button class="icon-btn danger" onclick="resetToSetup()">✕ Neu</button>
+    </div>
+  </div>
+
+  <div id="players-strip"></div>
+
+  <div id="game-main">
+    <div id="input-area">
+      <!-- Filled by JS -->
+    </div>
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-title">VERLAUF</div>
+      <div id="log-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Win screen -->
+<div id="win-screen">
+  <div class="win-card">
+    <div class="win-trophy">🏆</div>
+    <div class="win-title">GEWINNER</div>
+    <div class="win-name" id="win-name">–</div>
+    <div class="win-stats" id="win-stats"></div>
+    <div>
+      <button class="win-btn secondary" onclick="resetToSetup()">NEUES SPIEL</button>
+      <button class="win-btn" onclick="rematch()">REMATCH</button>
+    </div>
+  </div>
+</div>
+
+<div class="confetti" id="confetti"></div>
+
+<!-- ═══════════════════════════════════════ SCRIPT ═══════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let state = {
+  mode: null,
+  x01Start: 301,
+  checkout: 'straight',
+  players: [],
+  currentPlayer: 0,
+  round: 1,
+  history: [],        // array of turn snapshots
+  throws: [],         // current turn throws [{value, multiplier, label}]
+  multiplier: 1,
+  cricket: {},        // {player: {15:0, 16:0, ... B:0, pts:0}}
+  atc: {},            // {player: currentTarget}
+  shanghai: {},       // {player: {round: pts}}
+  shanghaiRound: 1,
+  gameOver: false
+};
+
+const CRICKET_NUMS = [20, 19, 18, 17, 16, 15, 'B'];
+const SHANGHAI_ROUNDS = 7;
+
+// ═══════════════════════════════════════
+// SETUP
+// ═══════════════════════════════════════
+let selectedMode = null;
+let x01Value = 301;
+let checkoutMode = 'straight';
+let players = [{name:'Spieler 1'}, {name:'Spieler 2'}];
+
+function selectMode(mode) {
+  selectedMode = mode;
+  document.querySelectorAll('.mode-card').forEach((c,i) => {
+    c.classList.toggle('selected', ['x01','cricket','atc','shanghai'][i] === mode);
+  });
+  document.getElementById('x01-options').classList.toggle('visible', mode === 'x01');
+  document.getElementById('checkout-opts').classList.toggle('visible', mode === 'x01');
+}
+
+function setX01(v) {
+  x01Value = v;
+  document.querySelectorAll('#x01-options .x01-btn').forEach(b => {
+    b.classList.toggle('selected', parseInt(b.textContent) === v);
+  });
+}
+
+function setCheckout(v) {
+  checkoutMode = v;
+  document.querySelectorAll('#checkout-opts .x01-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent.toLowerCase().startsWith(v));
+  });
+}
+
+function renderPlayerList() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <div class="player-num">${i+1}</div>
+      <input type="text" placeholder="Spieler ${i+1}" value="${p.name}"
+        oninput="players[${i}].name = this.value">
+      ${players.length > 1 ? `<button class="remove-btn" onclick="removePlayer(${i})">✕</button>` : ''}
+    `;
+    list.appendChild(row);
+  });
+  document.getElementById('add-player-btn').style.display = players.length >= 8 ? 'none' : '';
+}
+
+function addPlayer() {
+  if(players.length >= 8) return;
+  players.push({name: `Spieler ${players.length + 1}`});
+  renderPlayerList();
+}
+
+function removePlayer(i) {
+  if(players.length <= 1) return;
+  players.splice(i, 1);
+  renderPlayerList();
+}
+
+// Init setup
+selectMode('x01');
+renderPlayerList();
+
+// ═══════════════════════════════════════
+// START GAME
+// ═══════════════════════════════════════
+function startGame() {
+  if(!selectedMode) { alert('Bitte Spielmodus auswählen!'); return; }
+  const names = players.map(p => p.name.trim() || `Spieler ${players.indexOf(p)+1}`);
+
+  state = {
+    mode: selectedMode,
+    x01Start: x01Value,
+    checkout: checkoutMode,
+    players: names,
+    currentPlayer: 0,
+    round: 1,
+    history: [],
+    throws: [],
+    multiplier: 1,
+    cricket: {},
+    atc: {},
+    shanghai: {},
+    shanghaiRound: 1,
+    gameOver: false,
+    // X01
+    scores: {},
+    // stats
+    stats: {}
+  };
+
+  names.forEach(n => {
+    state.scores[n] = x01Value;
+    state.cricket[n] = {15:0, 16:0, 17:0, 18:0, 19:0, 20:0, B:0, pts:0};
+    state.atc[n] = 1;
+    state.shanghai[n] = 0;
+    state.stats[n] = {rounds: 0, total: 0, busts: 0};
+  });
+
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'block';
+  document.getElementById('mode-badge').textContent =
+    selectedMode === 'x01' ? `${x01Value}` :
+    selectedMode === 'cricket' ? 'CRICKET' :
+    selectedMode === 'atc' ? 'AROUND THE CLOCK' : 'SHANGHAI';
+
+  renderPlayersStrip();
+  renderInputArea();
+  renderSidebar();
+}
+
+// ═══════════════════════════════════════
+// PLAYERS STRIP
+// ═══════════════════════════════════════
+function renderPlayersStrip() {
+  const strip = document.getElementById('players-strip');
+  strip.innerHTML = '';
+  state.players.forEach((name, i) => {
+    const card = document.createElement('div');
+    card.className = 'player-card' + (i === state.currentPlayer ? ' active' : '');
+    card.id = `pc-${i}`;
+
+    let mainScore = '';
+    let sub = '';
+
+    if(state.mode === 'x01') {
+      mainScore = state.scores[name];
+      // checkout hint
+      const rem = state.scores[name];
+      sub = rem <= 170 ? getCheckoutHint(rem, state.checkout) || '' : '';
+    } else if(state.mode === 'cricket') {
+      mainScore = state.cricket[name].pts;
+      const closed = CRICKET_NUMS.filter(n => state.cricket[name][n] >= 3).length;
+      sub = `${closed}/${CRICKET_NUMS.length} geschlossen`;
+    } else if(state.mode === 'atc') {
+      mainScore = state.atc[name];
+      sub = `Ziel: ${state.atc[name]}`;
+    } else if(state.mode === 'shanghai') {
+      mainScore = state.shanghai[name];
+      sub = `Punkte`;
+    }
+
+    card.innerHTML = `
+      <div class="pc-name">${name}</div>
+      <div class="pc-score" id="pcs-${i}">${mainScore}</div>
+      <div class="pc-sub">${sub}</div>
+    `;
+    strip.appendChild(card);
+  });
+}
+
+function updatePlayerCard(idx) {
+  const name = state.players[idx];
+  const card = document.getElementById(`pc-${idx}`);
+  if(!card) return;
+  card.className = 'player-card' + (idx === state.currentPlayer ? ' active' : '');
+
+  let score = '';
+  let sub = '';
+  if(state.mode === 'x01') {
+    score = state.scores[name];
+    const rem = state.scores[name];
+    sub = rem <= 170 ? getCheckoutHint(rem, state.checkout) || '' : '';
+  } else if(state.mode === 'cricket') {
+    score = state.cricket[name].pts;
+    const closed = CRICKET_NUMS.filter(n => state.cricket[name][n] >= 3).length;
+    sub = `${closed}/${CRICKET_NUMS.length} geschlossen`;
+  } else if(state.mode === 'atc') {
+    score = state.atc[name];
+    sub = `Ziel: ${state.atc[name]}`;
+  } else if(state.mode === 'shanghai') {
+    score = state.shanghai[name];
+    sub = `Punkte`;
+  }
+
+  const sc = card.querySelector('.pc-score');
+  sc.textContent = score;
+  sc.classList.add('score-flash');
+  setTimeout(() => sc.classList.remove('score-flash'), 300);
+  card.querySelector('.pc-sub').textContent = sub;
+}
+
+// ═══════════════════════════════════════
+// INPUT AREA RENDERER
+// ═══════════════════════════════════════
+function renderInputArea() {
+  const area = document.getElementById('input-area');
+  const name = state.players[state.currentPlayer];
+  document.getElementById('round-num').textContent = state.round;
+
+  if(state.mode === 'x01') renderX01Input(area, name);
+  else if(state.mode === 'cricket') renderCricketInput(area, name);
+  else if(state.mode === 'atc') renderATCInput(area, name);
+  else if(state.mode === 'shanghai') renderShanghaiInput(area, name);
+}
+
+// ─────────────────────────────
+// X01
+// ─────────────────────────────
+function renderX01Input(area, name) {
+  const rem = state.scores[name];
+  const hint = rem <= 170 ? getCheckoutHint(rem, state.checkout) : '';
+
+  area.innerHTML = `
+    <div class="turn-info">
+      <div>
+        <div class="ti-label">AM ZUG</div>
+        <div class="ti-name">${name}</div>
+      </div>
+      <div>
+        <div class="ti-label">VERBLEIBEND</div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--accent)">${rem}</div>
+      </div>
+      <div class="ti-sep"></div>
+      <div class="ti-throws" id="throw-slots">
+        ${[0,1,2].map(i => `<div class="throw-slot" id="ts-${i}">–</div>`).join('')}
+      </div>
+    </div>
+
+    <div class="bust-msg" id="bust-msg">BUST! Zug wird zurückgesetzt</div>
+
+    <div class="multiplier-row">
+      <button class="mult-btn single ${state.multiplier===1?'active':''}" onclick="setMult(1)">SINGLE</button>
+      <button class="mult-btn double ${state.multiplier===2?'active':''}" onclick="setMult(2)">DOUBLE</button>
+      <button class="mult-btn triple ${state.multiplier===3?'active':''}" onclick="setMult(3)">TRIPLE</button>
+    </div>
+
+    <div class="numpad">
+      ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map(n =>
+        `<button class="np-btn" onclick="x01Throw(${n})">${n}</button>`
+      ).join('')}
+      <button class="np-btn bull" onclick="x01Throw(25, state.multiplier===2?2:1)">BULL</button>
+      <button class="np-btn miss" onclick="x01Throw(0)">MISS</button>
+    </div>
+
+    <div class="action-row">
+      <button class="big-btn undo" onclick="undoThrow()">↩ Rückgängig</button>
+      <button class="big-btn confirm" id="confirm-btn" onclick="confirmX01Turn()" ${state.throws.length < 3 && state.scores[name] > 0 ? 'style="opacity:0.5"' : ''}>
+        BESTÄTIGEN ${state.throws.length}/3
+      </button>
+    </div>
+  `;
+  updateThrowSlots();
+}
+
+function updateThrowSlots() {
+  [0,1,2].forEach(i => {
+    const slot = document.getElementById(`ts-${i}`);
+    if(!slot) return;
+    if(state.throws[i]) {
+      slot.textContent = state.throws[i].label;
+      slot.className = 'throw-slot filled';
+    } else {
+      slot.textContent = '–';
+      slot.className = 'throw-slot';
+    }
+  });
+  const btn = document.getElementById('confirm-btn');
+  if(btn) btn.textContent = `BESTÄTIGEN ${state.throws.length}/3`;
+}
+
+function setMult(m) {
+  state.multiplier = m;
+  document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+  const cls = ['','single','double','triple'][m];
+  document.querySelector('.mult-btn.'+cls)?.classList.add('active');
+}
+
+function x01Throw(num, forceMult) {
+  if(state.throws.length >= 3) return;
+  const mult = forceMult !== undefined ? forceMult : (num === 25 && state.multiplier === 2 ? 2 : state.multiplier);
+  const value = num * mult;
+  let label = num === 0 ? 'MISS' : num === 25 ? (mult===2?'D-Bull':'Bull') : (mult===2?`D${num}`:mult===3?`T${num}`:`${num}`);
+  state.throws.push({num, mult, value, label});
+  updateThrowSlots();
+  // reset multiplier
+  state.multiplier = 1;
+  document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.mult-btn.single')?.classList.add('active');
+
+  // Auto-confirm if checkout
+  const name = state.players[state.currentPlayer];
+  const turnTotal = state.throws.reduce((s,t)=>s+t.value,0);
+  if(state.scores[name] - turnTotal === 0) {
+    // Check double out
+    if(state.checkout === 'double') {
+      const last = state.throws[state.throws.length-1];
+      if(last.mult === 2 || (last.num===25&&last.mult===2)) {
+        setTimeout(confirmX01Turn, 200);
+        return;
+      }
+    } else if(state.checkout === 'master') {
+      const last = state.throws[state.throws.length-1];
+      if(last.mult >= 2) { setTimeout(confirmX01Turn, 200); return; }
+    } else {
+      setTimeout(confirmX01Turn, 200);
+      return;
+    }
+  }
+
+  if(state.throws.length === 3) {
+    const btn = document.getElementById('confirm-btn');
+    if(btn) { btn.style.opacity='1'; }
+  }
+  updateThrowSlots();
+}
+
+function undoThrow() {
+  if(state.throws.length > 0) {
+    state.throws.pop();
+    updateThrowSlots();
+    const bust = document.getElementById('bust-msg');
+    if(bust) bust.classList.remove('show');
+  }
+}
+
+function confirmX01Turn() {
+  const name = state.players[state.currentPlayer];
+  const total = state.throws.reduce((s,t)=>s+t.value,0);
+  const newScore = state.scores[name] - total;
+  let bust = false;
+
+  if(newScore < 0 || newScore === 1) {
+    bust = true;
+  } else if(newScore === 0) {
+    // Check checkout rules
+    if(state.checkout === 'double') {
+      const last = state.throws[state.throws.length-1];
+      if(!last || (last.mult !== 2 && !(last.num===25&&last.mult===2))) bust = true;
+    } else if(state.checkout === 'master') {
+      const last = state.throws[state.throws.length-1];
+      if(!last || last.mult < 2) bust = true;
+    }
+  }
+
+  // Save to history
+  const snapshot = JSON.parse(JSON.stringify({
+    scores: state.scores,
+    currentPlayer: state.currentPlayer,
+    round: state.round,
+    throws: state.throws,
+    bust
+  }));
+  state.history.push(snapshot);
+
+  // Add log entry
+  addLogEntry(name, state.throws, total, bust);
+
+  if(!bust) {
+    state.scores[name] = newScore;
+    state.stats[name].total += total;
+    state.stats[name].rounds++;
+  } else {
+    state.stats[name].busts++;
+    const bustEl = document.getElementById('bust-msg');
+    if(bustEl) {
+      bustEl.classList.add('show');
+      setTimeout(() => bustEl.classList.remove('show'), 1500);
+    }
+  }
+
+  updatePlayerCard(state.currentPlayer);
+
+  if(!bust && state.scores[name] === 0) {
+    showWinner(name);
+    return;
+  }
+
+  state.throws = [];
+  nextPlayer();
+}
+
+// ─────────────────────────────
+// CRICKET
+// ─────────────────────────────
+function renderCricketInput(area, name) {
+  area.innerHTML = `
+    <div class="turn-info">
+      <div>
+        <div class="ti-label">AM ZUG</div>
+        <div class="ti-name">${name}</div>
+      </div>
+      <div class="ti-sep"></div>
+      <div class="ti-throws" id="throw-slots">
+        ${[0,1,2].map(i => `<div class="throw-slot" id="ts-${i}">–</div>`).join('')}
+      </div>
+    </div>
+
+    <div class="multiplier-row">
+      <button class="mult-btn single ${state.multiplier===1?'active':''}" onclick="setCricketMult(1)">SINGLE</button>
+      <button class="mult-btn double ${state.multiplier===2?'active':''}" onclick="setCricketMult(2)">DOUBLE</button>
+      <button class="mult-btn triple ${state.multiplier===3?'active':''}" onclick="setCricketMult(3)">TRIPLE</button>
+    </div>
+
+    <div class="numpad" style="grid-template-columns: repeat(4,1fr)">
+      ${[15,16,17,18,19,20].map(n => `<button class="np-btn" onclick="cricketThrow(${n})">${n}</button>`).join('')}
+      <button class="np-btn bull" onclick="cricketThrow('B')">BULL</button>
+      <button class="np-btn miss" onclick="cricketThrow(null)">MISS</button>
+    </div>
+
+    <div class="action-row">
+      <button class="big-btn undo" onclick="undoCricketThrow()">↩ Rückgängig</button>
+      <button class="big-btn confirm" onclick="confirmCricketTurn()">BESTÄTIGEN ${state.throws.length}/3</button>
+    </div>
+  `;
+  renderCricketBoard();
+  updateCricketSlots();
+}
+
+function setCricketMult(m) {
+  state.multiplier = m;
+  document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+  const cls = ['','single','double','triple'][m];
+  document.querySelector('.mult-btn.'+cls)?.classList.add('active');
+}
+
+function cricketThrow(num) {
+  if(state.throws.length >= 3) return;
+  const mult = state.multiplier;
+  let label = num === null ? 'MISS' : num === 'B' ? (mult===2?'D-Bull':'Bull') : (mult===2?`D${num}`:mult===3?`T${num}`:`${num}`);
+  state.throws.push({num, mult, label, hits: mult});
+  state.multiplier = 1;
+  document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.mult-btn.single')?.classList.add('active');
+  updateCricketSlots();
+}
+
+function updateCricketSlots() {
+  [0,1,2].forEach(i => {
+    const slot = document.getElementById(`ts-${i}`);
+    if(!slot) return;
+    if(state.throws[i]) {
+      slot.textContent = state.throws[i].label;
+      slot.className = 'throw-slot filled';
+    } else {
+      slot.textContent = '–';
+      slot.className = 'throw-slot';
+    }
+  });
+  const btn = document.querySelector('.big-btn.confirm');
+  if(btn) btn.textContent = `BESTÄTIGEN ${state.throws.length}/3`;
+}
+
+function undoCricketThrow() {
+  if(state.throws.length > 0) state.throws.pop();
+  updateCricketSlots();
+}
+
+function confirmCricketTurn() {
+  const name = state.players[state.currentPlayer];
+  const snap = JSON.parse(JSON.stringify({cricket: state.cricket, currentPlayer: state.currentPlayer, round: state.round, throws: state.throws}));
+  state.history.push(snap);
+
+  // Apply throws
+  state.throws.forEach(t => {
+    if(t.num === null) return;
+    const key = t.num;
+    const hits = t.hits;
+    for(let h=0; h<hits; h++) {
+      applyOneCricketHit(name, key);
+    }
+  });
+
+  addLogEntry(name, state.throws, null, false, 'cricket');
+  updatePlayerCard(state.currentPlayer);
+  renderCricketBoard();
+
+  // Check win: all closed + most points (or tied max)
+  if(checkCricketWin()) {
+    // Find winner
+    const winner = getCricketWinner();
+    showWinner(winner);
+    return;
+  }
+
+  state.throws = [];
+  nextPlayer();
+}
+
+function applyOneCricketHit(playerName, key) {
+  const cd = state.cricket[playerName];
+  const marks = cd[key] || 0;
+  if(marks < 3) {
+    cd[key] = marks + 1;
+  } else {
+    // Score if opponents haven't closed
+    const allClosed = state.players.every(p => state.cricket[p][key] >= 3);
+    if(!allClosed) {
+      const val = key === 'B' ? 25 : key;
+      cd.pts += val;
+    }
+  }
+}
+
+function checkCricketWin() {
+  return state.players.some(p => {
+    const cd = state.cricket[p];
+    return CRICKET_NUMS.every(n => cd[n] >= 3);
+  });
+}
+
+function getCricketWinner() {
+  const closers = state.players.filter(p => CRICKET_NUMS.every(n => state.cricket[p][n] >= 3));
+  if(closers.length === 0) return null;
+  return closers.reduce((best, p) => state.cricket[p].pts >= state.cricket[best].pts ? p : best);
+}
+
+function getMarksDisplay(count) {
+  if(count === 0) return '';
+  if(count === 1) return '/';
+  if(count === 2) return 'X';
+  return '✓';
+}
+
+function renderCricketBoard() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = `
+    <div class="sidebar-title">CRICKET BOARD</div>
+    <table class="cricket-board">
+      <thead>
+        <tr>
+          <th>NR</th>
+          ${state.players.map(p => `<th>${p.length > 8 ? p.substring(0,7)+'…' : p}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${CRICKET_NUMS.map(num => `
+          <tr>
+            <td class="number">${num}</td>
+            ${state.players.map(p => {
+              const marks = state.cricket[p][num] || 0;
+              const cls = marks >= 3 ? 'marks closed' : marks > 0 ? 'marks points' : 'marks';
+              return `<td class="${cls}">${getMarksDisplay(marks)}</td>`;
+            }).join('')}
+          </tr>
+        `).join('')}
+        <tr style="border-top: 1px solid var(--border)">
+          <td class="number" style="font-size:0.8rem; color:var(--muted)">PTS</td>
+          ${state.players.map(p => `<td class="cricket-pts">${state.cricket[p].pts}</td>`).join('')}
+        </tr>
+      </tbody>
+    </table>
+  `;
+}
+
+// ─────────────────────────────
+// AROUND THE CLOCK
+// ─────────────────────────────
+function renderATCInput(area, name) {
+  const target = state.atc[name];
+  const isDouble = false;
+
+  area.innerHTML = `
+    <div class="turn-info">
+      <div>
+        <div class="ti-label">AM ZUG</div>
+        <div class="ti-name">${name}</div>
+      </div>
+      <div>
+        <div class="ti-label">ZIEL</div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:2.5rem; color:var(--accent)">${target}</div>
+      </div>
+      <div class="ti-sep"></div>
+      <div class="ti-throws" id="throw-slots">
+        ${[0,1,2].map(i => `<div class="throw-slot" id="ts-${i}">–</div>`).join('')}
+      </div>
+    </div>
+
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:4px">
+      <div class="atc-progress" id="atc-progress"></div>
+    </div>
+
+    <div class="atc-btn-grid">
+      <button class="atc-input-btn" style="background:rgba(46,204,113,0.1);border-color:var(--green);color:var(--green)"
+        onclick="atcThrow(true)">✓ TREFFER<br><small style="font-size:0.7rem;color:var(--muted)">Ziel ${target} getroffen</small></button>
+      <button class="atc-input-btn" style="background:rgba(231,76,60,0.07);border-color:rgba(231,76,60,0.4);color:var(--red)"
+        onclick="atcThrow(false)">✗ VERFEHLT<br><small style="font-size:0.7rem;color:var(--muted)">Kein Treffer</small></button>
+    </div>
+
+    <div class="action-row">
+      <button class="big-btn undo" onclick="undoATCThrow()">↩ Rückgängig</button>
+      <button class="big-btn confirm" onclick="confirmATCTurn()">RUNDE BEENDEN</button>
+    </div>
+  `;
+
+  renderATCProgress(name);
+}
+
+function atcThrow(hit) {
+  if(state.throws.length >= 3) return;
+  const name = state.players[state.currentPlayer];
+  const target = state.atc[name];
+  state.throws.push({hit, label: hit ? `✓${target}` : '✗', target});
+  updateATCSlots();
+
+  // If hit, advance target (can hit multiple in one turn if you advance)
+  if(hit) {
+    state.atc[name] = Math.min(state.atc[name] + 1, 21);
+    if(state.atc[name] > 20) {
+      setTimeout(confirmATCTurn, 200);
+      return;
+    }
+    updateATCTarget();
+  }
+}
+
+function updateATCTarget() {
+  const name = state.players[state.currentPlayer];
+  const target = state.atc[name];
+  const el = document.querySelector('.turn-info div:nth-child(2) div:last-child');
+  if(el) el.textContent = target > 20 ? '✓' : target;
+  renderATCProgress(name);
+}
+
+function renderATCProgress(name) {
+  const prog = document.getElementById('atc-progress');
+  if(!prog) return;
+  prog.innerHTML = '';
+  for(let i=1; i<=20; i++) {
+    const el = document.createElement('div');
+    const cur = state.atc[name];
+    el.className = 'atc-num' + (i < cur ? ' hit' : i === cur ? ' current' : '');
+    el.textContent = i;
+    prog.appendChild(el);
+  }
+}
+
+function updateATCSlots() {
+  [0,1,2].forEach(i => {
+    const slot = document.getElementById(`ts-${i}`);
+    if(!slot) return;
+    if(state.throws[i]) {
+      slot.textContent = state.throws[i].label;
+      slot.className = 'throw-slot filled' + (state.throws[i].hit ? '' : '');
+    } else {
+      slot.textContent = '–';
+      slot.className = 'throw-slot';
+    }
+  });
+}
+
+function undoATCThrow() {
+  if(state.throws.length > 0) {
+    const t = state.throws.pop();
+    if(t.hit) {
+      const name = state.players[state.currentPlayer];
+      state.atc[name] = t.target; // restore
+    }
+    updateATCSlots();
+    updateATCTarget();
+    renderATCProgress(state.players[state.currentPlayer]);
+  }
+}
+
+function confirmATCTurn() {
+  const name = state.players[state.currentPlayer];
+  addLogEntry(name, state.throws, null, false, 'atc');
+  updatePlayerCard(state.currentPlayer);
+
+  if(state.atc[name] > 20) {
+    showWinner(name);
+    return;
+  }
+
+  state.throws = [];
+  nextPlayer();
+}
+
+// ─────────────────────────────
+// SHANGHAI
+// ─────────────────────────────
+function renderShanghaiInput(area, name) {
+  const round = state.shanghaiRound;
+  area.innerHTML = `
+    <div class="turn-info">
+      <div>
+        <div class="ti-label">AM ZUG</div>
+        <div class="ti-name">${name}</div>
+      </div>
+      <div>
+        <div class="ti-label">RUNDE / ZIEL</div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--accent)">${round} <span style="font-size:1rem;color:var(--muted)">→ ${round}er</span></div>
+      </div>
+      <div class="ti-sep"></div>
+      <div class="ti-throws" id="throw-slots">
+        ${[0,1,2].map(i => `<div class="throw-slot" id="ts-${i}">–</div>`).join('')}
+      </div>
+    </div>
+
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px">
+      <div style="font-size:0.8rem;color:var(--muted);letter-spacing:2px;margin-bottom:8px">IN RUNDE ${round} WÜRFEN AUF ${round}ER</div>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:0.85rem;color:var(--muted)">
+        Single = ${round} Pkt | Double = ${round*2} Pkt | Triple = ${round*3} Pkt<br>
+        Shanghai (alle 3) = sofortiger Sieg!
+      </div>
+    </div>
+
+    <div class="multiplier-row">
+      <button class="mult-btn single ${state.multiplier===1?'active':''}" onclick="setShanghaiMult(1)">SINGLE</button>
+      <button class="mult-btn double ${state.multiplier===2?'active':''}" onclick="setShanghaiMult(2)">DOUBLE</button>
+      <button class="mult-btn triple ${state.multiplier===3?'active':''}" onclick="setShanghaiMult(3)">TRIPLE</button>
+    </div>
+
+    <div class="numpad" style="grid-template-columns: repeat(2,1fr); max-width: 300px">
+      <button class="np-btn" onclick="shanghaiThrow(${round})">TREFFER (${round})</button>
+      <button class="np-btn miss" onclick="shanghaiThrow(0)">MISS</button>
+    </div>
+
+    <div class="action-row">
+      <button class="big-btn undo" onclick="undoShanghaiThrow()">↩ Rückgängig</button>
+      <button class="big-btn confirm" onclick="confirmShanghaiTurn()">BESTÄTIGEN ${state.throws.length}/3</button>
+    </div>
+  `;
+  renderShanghaiSidebar();
+}
+
+function setShanghaiMult(m) {
+  state.multiplier = m;
+  document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+  const cls = ['','single','double','triple'][m];
+  document.querySelector('.mult-btn.'+cls)?.classList.add('active');
+}
+
+function shanghaiThrow(num) {
+  if(state.throws.length >= 3) return;
+  const round = state.shanghaiRound;
+  const mult = state.multiplier;
+  const value = num === 0 ? 0 : round * mult;
+  const label = num === 0 ? 'MISS' : (mult===2?'D':mult===3?'T':'') + round;
+  state.throws.push({num, mult, value, label, hit: num !== 0});
+  state.multiplier = 1;
+  document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.mult-btn.single')?.classList.add('active');
+  updateShanghaiSlots();
+
+  // Shanghai check
+  if(state.throws.length === 3) {
+    const hits = state.throws.filter(t=>t.hit);
+    const hasS = hits.some(t=>t.mult===1);
+    const hasD = hits.some(t=>t.mult===2);
+    const hasT = hits.some(t=>t.mult===3);
+    if(hasS && hasD && hasT) {
+      // SHANGHAI!
+      setTimeout(() => {
+        showWinner(state.players[state.currentPlayer], true);
+      }, 300);
+    }
+  }
+}
+
+function updateShanghaiSlots() {
+  [0,1,2].forEach(i => {
+    const slot = document.getElementById(`ts-${i}`);
+    if(!slot) return;
+    if(state.throws[i]) {
+      slot.textContent = state.throws[i].label;
+      slot.className = 'throw-slot filled';
+    } else {
+      slot.textContent = '–';
+      slot.className = 'throw-slot';
+    }
+  });
+  const btn = document.querySelector('.big-btn.confirm');
+  if(btn) btn.textContent = `BESTÄTIGEN ${state.throws.length}/3`;
+}
+
+function undoShanghaiThrow() {
+  if(state.throws.length > 0) state.throws.pop();
+  updateShanghaiSlots();
+}
+
+function confirmShanghaiTurn() {
+  const name = state.players[state.currentPlayer];
+  const total = state.throws.reduce((s,t)=>s+t.value, 0);
+  state.shanghai[name] += total;
+  addLogEntry(name, state.throws, total, false, 'shanghai');
+  updatePlayerCard(state.currentPlayer);
+
+  // Last player of last round?
+  const isLastPlayer = state.currentPlayer === state.players.length - 1;
+  if(isLastPlayer && state.shanghaiRound >= SHANGHAI_ROUNDS) {
+    // Game over - find winner
+    const winner = state.players.reduce((best,p) => state.shanghai[p] > state.shanghai[best] ? p : best);
+    showWinner(winner);
+    return;
+  }
+
+  if(isLastPlayer) state.shanghaiRound++;
+
+  state.throws = [];
+  nextPlayer(true);
+}
+
+function renderShanghaiSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = `
+    <div class="sidebar-title">PUNKTESTAND</div>
+    ${state.players.map(p => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <span style="font-size:0.85rem;color:var(--muted)">${p}</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--text)">${state.shanghai[p]}</span>
+      </div>
+    `).join('')}
+    <div style="margin-top:16px">
+      <div class="sidebar-title">RUNDEN ${state.shanghaiRound}/${SHANGHAI_ROUNDS}</div>
+      ${Array.from({length:SHANGHAI_ROUNDS},(_, i)=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.8rem;">
+          <div style="width:22px;height:22px;border-radius:50%;border:1px solid ${i+1<state.shanghaiRound?'var(--green)':i+1===state.shanghaiRound?'var(--accent)':'var(--border)'};display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;color:${i+1<state.shanghaiRound?'var(--green)':i+1===state.shanghaiRound?'var(--accent)':'var(--muted)'}">
+            ${i+1}
+          </div>
+          <span style="color:${i+1===state.shanghaiRound?'var(--accent)':'var(--muted)'}">Auf ${i+1}er${i+1===state.shanghaiRound?' ← JETZT':''}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function nextPlayer(shanghaiMode = false) {
+  state.currentPlayer = (state.currentPlayer + 1) % state.players.length;
+  if(!shanghaiMode && state.currentPlayer === 0) state.round++;
+
+  // Update all cards
+  state.players.forEach((_,i) => updatePlayerCard(i));
+  renderInputArea();
+  if(state.mode === 'cricket') renderCricketBoard();
+  if(state.mode === 'shanghai') renderShanghaiSidebar();
+}
+
+// ═══════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════
+function addLogEntry(name, throws, total, bust, mode) {
+  const container = document.getElementById('log-container');
+  if(!container) return;
+  if(mode === 'cricket' || mode === 'atc' || mode === 'shanghai') {
+    // simple log
+  }
+
+  const entry = document.createElement('div');
+  entry.className = 'log-entry' + (bust ? ' bust' : total > 60 ? ' good' : '');
+
+  const throwStr = throws.map(t => t.label).join(' · ');
+  const totalStr = bust ? 'BUST' : total !== null ? `${total}` : '✓';
+
+  entry.innerHTML = `
+    <div class="log-name">${name.length > 9 ? name.substring(0,8)+'…' : name}</div>
+    <div class="log-throws">${throwStr || '–'}</div>
+    <div class="log-total" style="color:${bust?'var(--red)':total > 60?'var(--green)':'var(--text)'}">${totalStr}</div>
+  `;
+
+  container.insertBefore(entry, container.firstChild);
+
+  // Keep max 30 entries
+  while(container.children.length > 30) container.removeChild(container.lastChild);
+}
+
+function renderSidebar() {
+  if(state.mode === 'cricket') {
+    renderCricketBoard();
+  } else if(state.mode === 'shanghai') {
+    renderShanghaiSidebar();
+  } else {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.innerHTML = '<div class="sidebar-title">VERLAUF</div><div id="log-container"></div>';
+  }
+}
+
+// ═══════════════════════════════════════
+// UNDO TURN
+// ═══════════════════════════════════════
+function undoLastTurn() {
+  if(state.history.length === 0) return;
+  const snap = state.history.pop();
+
+  if(state.mode === 'x01') {
+    state.scores = snap.scores;
+    state.currentPlayer = snap.currentPlayer;
+    state.round = snap.round;
+  } else if(state.mode === 'cricket') {
+    state.cricket = snap.cricket;
+    state.currentPlayer = snap.currentPlayer;
+    state.round = snap.round;
+  }
+
+  state.throws = [];
+  renderPlayersStrip();
+  renderInputArea();
+  renderSidebar();
+
+  const container = document.getElementById('log-container');
+  if(container && container.firstChild) container.removeChild(container.firstChild);
+}
+
+// ═══════════════════════════════════════
+// CHECKOUT HINTS
+// ═══════════════════════════════════════
+const CHECKOUT_TABLE = {
+  170:'T20 T20 D-Bull', 167:'T20 T19 D-Bull', 164:'T20 T18 D-Bull', 161:'T20 T17 D-Bull',
+  160:'T20 T20 D20', 158:'T20 T20 D19', 157:'T20 T19 D20', 156:'T20 T20 D18',
+  155:'T20 T19 D19', 154:'T20 T18 D20', 153:'T20 T19 D18', 152:'T20 T20 D16',
+  151:'T20 T17 D20', 150:'T20 T18 D18', 149:'T20 T19 D16', 148:'T20 T16 D20',
+  147:'T20 T17 D18', 146:'T20 T18 D16', 145:'T20 T15 D20', 144:'T20 T20 D12',
+  143:'T20 T17 D16', 142:'T20 T14 D20', 141:'T20 T19 D12', 140:'T20 T16 D16',
+  139:'T19 T14 D20', 138:'T20 T18 D12', 137:'T20 T15 D16', 136:'T20 T20 D8',
+  135:'T20 T17 D12', 134:'T20 T14 D16', 133:'T20 T19 D8', 132:'T20 T16 D12',
+  131:'T20 T13 D16', 130:'T20 T18 D8', 129:'T19 T16 D12', 128:'T20 T12 D16',
+  127:'T20 T17 D8', 126:'T19 T15 D12', 125:'T20 D-Bull', 124:'T20 T16 D8',
+  123:'T19 T14 D12', 122:'T18 T16 D8', 121:'T20 T11 D14', 120:'T20 20 D20',
+  119:'T19 T12 D8', 118:'T20 T14 D8', 117:'T20 T17 D4', 116:'T20 T16 D4',
+  115:'T20 T15 D4', 114:'T20 T14 D4', 113:'T20 T13 D4', 112:'T20 T12 D8',
+  111:'T20 T11 D8', 110:'T20 T10 D8', 109:'T20 T9 D8', 108:'T20 T12 D6',
+  107:'T19 T10 D8', 106:'T20 T10 D6', 105:'T20 T5 D20', 104:'T20 T8 D8',
+  103:'T19 T10 D4', 102:'T20 T10 D4', 101:'T17 T16 D4', 100:'T20 D20',
+  99:'T19 D20 D16', 98:'T20 D19', 97:'T19 D20', 96:'T20 D18', 95:'T19 D19',
+  94:'T18 D20', 93:'T19 D18', 92:'T20 D16', 91:'T17 D20', 90:'T18 D18',
+  89:'T19 D16', 88:'T20 D14', 87:'T17 D18', 86:'T18 D16', 85:'T15 D20',
+  84:'T20 D12', 83:'T17 D16', 82:'T14 D20', 81:'T19 D12', 80:'T20 D10',
+  79:'T13 D20', 78:'T18 D12', 77:'T19 D10', 76:'T20 D8', 75:'T17 D12',
+  74:'T14 D16', 73:'T19 D8', 72:'T16 D12', 71:'T13 D16', 70:'T18 D8',
+  69:'T19 D6', 68:'T20 D4', 67:'T17 D8', 66:'T10 D18', 65:'T19 D4',
+  64:'T16 D8', 63:'T13 D12', 62:'T10 D16', 61:'T15 D8', 60:'20 D20',
+  59:'19 D20', 58:'18 D20', 57:'17 D20', 56:'16 D20', 55:'15 D20',
+  54:'14 D20', 53:'13 D20', 52:'12 D20', 51:'11 D20', 50:'D-Bull',
+  49:'9 D20', 48:'8 D20', 47:'7 D20', 46:'6 D20', 45:'5 D20',
+  44:'4 D20', 43:'3 D20', 42:'10 D16', 41:'9 D16', 40:'D20',
+  39:'7 D16', 38:'D19', 37:'5 D16', 36:'D18', 35:'3 D16', 34:'D17',
+  33:'1 D16', 32:'D16', 31:'15 D8', 30:'D15', 29:'13 D8', 28:'D14',
+  27:'11 D8', 26:'D13', 25:'9 D8', 24:'D12', 23:'7 D8', 22:'D11',
+  21:'5 D8', 20:'D10', 19:'3 D8', 18:'D9', 17:'1 D8', 16:'D8',
+  15:'7 D4', 14:'D7', 13:'5 D4', 12:'D6', 11:'3 D4', 10:'D5',
+  9:'1 D4', 8:'D4', 7:'3 D2', 6:'D3', 5:'1 D2', 4:'D2', 3:'1 D1', 2:'D1'
+};
+
+function getCheckoutHint(score, checkout) {
+  if(checkout === 'straight') {
+    if(score <= 20) return `${score} (Finish!)`;
+    if(score === 25) return 'Bull';
+    if(score === 50) return 'D-Bull';
+    return CHECKOUT_TABLE[score] || null;
+  }
+  if(checkout === 'double' || checkout === 'master') {
+    return CHECKOUT_TABLE[score] || null;
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════
+// WIN
+// ═══════════════════════════════════════
+function showWinner(name, isShanghai = false) {
+  state.gameOver = true;
+
+  let stats = '';
+  if(state.mode === 'x01') {
+    const s = state.stats[name];
+    const avg = s.rounds > 0 ? Math.round(s.total / s.rounds) : 0;
+    stats = `Runden gespielt: ${s.rounds}<br>Gesamt-Punkte: ${s.total}<br>Busts: ${s.busts}<br>Ø pro Runde: ${avg}`;
+  } else if(state.mode === 'cricket') {
+    stats = `Punkte: ${state.cricket[name].pts}<br>Geschlossene Felder: ${CRICKET_NUMS.filter(n=>state.cricket[name][n]>=3).length}/${CRICKET_NUMS.length}`;
+  } else if(state.mode === 'atc') {
+    stats = `Alle Zahlen 1–20 getroffen!<br>In Runde ${state.round}`;
+  } else if(state.mode === 'shanghai') {
+    const pts = state.shanghai[name];
+    stats = isShanghai ? `🎯 SHANGHAI! Sofortsieg!<br>Punkte: ${pts}` : `Punkte: ${pts}<br>Nach ${SHANGHAI_ROUNDS} Runden`;
+  }
+
+  document.getElementById('win-name').textContent = name;
+  document.getElementById('win-stats').innerHTML = stats;
+  document.getElementById('win-screen').classList.add('show');
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const c = document.getElementById('confetti');
+  c.innerHTML = '';
+  const colors = ['#e8b84b','#c0392b','#27ae60','#3498db','#9b59b6','#f0c060'];
+  for(let i=0; i<80; i++) {
+    const p = document.createElement('div');
+    p.className = 'c-piece';
+    p.style.cssText = `
+      left: ${Math.random()*100}vw;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius: ${Math.random()>0.5?'50%':'2px'};
+      width: ${5+Math.random()*8}px;
+      height: ${5+Math.random()*8}px;
+      animation-duration: ${2+Math.random()*3}s;
+      animation-delay: ${Math.random()*1}s;
+    `;
+    c.appendChild(p);
+  }
+  setTimeout(() => c.innerHTML = '', 6000);
+}
+
+function rematch() {
+  document.getElementById('win-screen').classList.remove('show');
+  // Reset scores but keep players & mode
+  const names = state.players;
+  names.forEach(n => {
+    state.scores[n] = state.x01Start;
+    state.cricket[n] = {15:0,16:0,17:0,18:0,19:0,20:0,B:0,pts:0};
+    state.atc[n] = 1;
+    state.shanghai[n] = 0;
+    state.stats[n] = {rounds:0,total:0,busts:0};
+  });
+  state.currentPlayer = 0;
+  state.round = 1;
+  state.shanghaiRound = 1;
+  state.throws = [];
+  state.history = [];
+  state.gameOver = false;
+
+  renderPlayersStrip();
+  renderInputArea();
+  renderSidebar();
+}
+
+function resetToSetup() {
+  document.getElementById('win-screen').classList.remove('show');
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'block';
+  state.throws = [];
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+</script>
+</body>
+</html>
